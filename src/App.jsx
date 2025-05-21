@@ -5,8 +5,8 @@ import LandingPage from './Components/LandingPage'
 const App = () => {
   return (
     <div>
-      {/* <OpeningPage /> */}
-      <LandingPage />
+      <OpeningPage />
+      {/* <LandingPage /> */}
     </div>
   )
 }
