@@ -14,6 +14,7 @@ const AICopilotLanding = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [streamingResponse, setStreamingResponse] = useState('');
+    const [selectedQuestion, setSelectedQuestion] = useState('');
     const { currentUser, logout } = useAuth();
     const chatEndRef = useRef(null);
 
@@ -126,6 +127,7 @@ const AICopilotLanding = () => {
         setChatMessages([]);
         setCopilotResponse('');
         setIsComposing(false);
+        return newChatId;
     };
 
     const loadChat = (chatId) => {
@@ -169,6 +171,7 @@ const AICopilotLanding = () => {
     const handleSuggestionClick = async (question) => {
         setIsLoading(true);
         setCopilotResponse('');
+        setSelectedQuestion(question);
 
         try {
             const response = await callGeminiAPI(`Please provide a comprehensive and helpful answer to this question: "${question}". Make your response informative, practical, and well-structured.`);
@@ -191,9 +194,22 @@ const AICopilotLanding = () => {
     };
 
     const handleCompose = () => {
+        // Create new chat if none exists
+        let chatId = currentChatId;
+        if (!chatId) {
+            chatId = createNewChat();
+        }
+
+        // Set the copilot response as editable text
         setEditableResponse(copilotResponse);
         setIsComposing(true);
         setActiveSection('chat');
+
+        // Clear the copilot response to avoid confusion
+        setTimeout(() => {
+            setCopilotResponse('');
+            setSelectedQuestion('');
+        }, 100);
     };
 
     const handleSendMessage = async () => {
@@ -291,7 +307,8 @@ const AICopilotLanding = () => {
                                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                                     <Gem className="w-5 h-5 text-white" />
                                 </div>
-                                <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-purple-500 to-indigo-600 bg-clip-text text-transparent transition-all duration-500 ease-in-out hover:from-purple-500 hover:via-purple-600 hover:to-indigo-700 hover:scale-110 cursor-pointer">Synapse</span>                            </div>
+                                <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-purple-500 to-indigo-600 bg-clip-text text-transparent transition-all duration-500 ease-in-out hover:from-purple-500 hover:via-purple-600 hover:to-indigo-700 hover:scale-110 cursor-pointer">Synapse</span>
+                            </div>
 
                             <div className="hidden md:flex items-center space-x-6">
 
@@ -514,7 +531,11 @@ const AICopilotLanding = () => {
                                         key={index}
                                         onClick={() => handleSuggestionClick(question)}
                                         disabled={isLoading}
-                                        className="w-full text-left p-3 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-sm text-slate-700 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className={`w-full text-left p-3 rounded-lg border transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed ${
+                                            selectedQuestion === question && copilotResponse
+                                                ? 'border-blue-300 bg-blue-50 text-blue-700'
+                                                : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 hover:text-blue-700'
+                                        }`}
                                     >
                                         {question}
                                     </button>
