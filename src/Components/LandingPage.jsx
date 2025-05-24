@@ -15,10 +15,9 @@ const AICopilotLanding = () => {
     const [isTyping, setIsTyping] = useState(false);
     const [streamingResponse, setStreamingResponse] = useState('');
     const { currentUser, logout } = useAuth();
+    const chatEndRef = useRef(null);
 
     const API_KEY = 'AIzaSyCCfqB_AXX87EgcJzOLhgp5CK5LpHYfTcA';
-
-    const chatEndRef = useRef(null);
 
     const suggestedQuestions = [
         "How can I improve my productivity workflow?",
@@ -39,7 +38,6 @@ const AICopilotLanding = () => {
         scrollToBottom();
     }, [chatMessages]);
 
-    // Simulate typing effect for responses
     const simulateTyping = (text, callback) => {
         setIsTyping(true);
         setStreamingResponse('');
@@ -54,7 +52,6 @@ const AICopilotLanding = () => {
                     return newText;
                 });
                 index++;
-                // Randomize typing speed for more natural feel
                 setTimeout(addWord, Math.random() * 100 + 50);
             } else {
                 setIsTyping(false);
@@ -65,7 +62,6 @@ const AICopilotLanding = () => {
         addWord();
     };
 
-    // Function to call Gemini API
     const callGeminiAPI = async (prompt) => {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
@@ -114,7 +110,6 @@ const AICopilotLanding = () => {
         }
     };
 
-    // Create a new chat
     const createNewChat = () => {
         const newChatId = Date.now();
         const newChat = {
@@ -133,7 +128,6 @@ const AICopilotLanding = () => {
         setIsComposing(false);
     };
 
-    // Load a chat from past chats
     const loadChat = (chatId) => {
         const chat = pastChats.find(c => c.id === chatId);
         if (chat) {
@@ -144,7 +138,6 @@ const AICopilotLanding = () => {
         }
     };
 
-    // Update current chat in past chats
     const updateCurrentChat = (messages, lastMessage) => {
         if (currentChatId) {
             setPastChats(prev => prev.map(chat => {
@@ -164,7 +157,6 @@ const AICopilotLanding = () => {
         }
     };
 
-    // Delete a chat
     const deleteChat = (chatId, e) => {
         e.stopPropagation();
         setPastChats(prev => prev.filter(chat => chat.id !== chatId));
@@ -174,7 +166,6 @@ const AICopilotLanding = () => {
         }
     };
 
-    // Handle suggestion click with Gemini API
     const handleSuggestionClick = async (question) => {
         setIsLoading(true);
         setCopilotResponse('');
@@ -189,7 +180,6 @@ const AICopilotLanding = () => {
         }
     };
 
-    // Handle regular chat messages with Gemini API
     const generateAIResponse = async (userMessage) => {
         try {
             const prompt = `Please respond to this message in a helpful and conversational way: "${userMessage}"`;
@@ -218,11 +208,9 @@ const AICopilotLanding = () => {
             return;
         }
 
-        // Create new chat if none exists
         if (!currentChatId) {
             createNewChat();
             shouldCreateNewChat = true;
-            // Wait a moment for the new chat to be created
             await new Promise(resolve => setTimeout(resolve, 100));
         }
 
@@ -236,7 +224,6 @@ const AICopilotLanding = () => {
         const updatedMessages = [...chatMessages, newMessage];
         setChatMessages(updatedMessages);
 
-        // Add temporary AI message for typing effect
         const tempAiId = Date.now() + 1;
         const tempAiMessage = {
             id: tempAiId,
@@ -247,10 +234,8 @@ const AICopilotLanding = () => {
         };
         setChatMessages(prev => [...prev, tempAiMessage]);
 
-        // Generate AI response using Gemini
         const aiResponseText = await generateAIResponse(messageText);
 
-        // Simulate typing effect
         simulateTyping(aiResponseText, () => {
             const finalMessages = [...updatedMessages, {
                 id: tempAiId,
@@ -263,17 +248,13 @@ const AICopilotLanding = () => {
             setChatMessages(finalMessages);
             setStreamingResponse('');
             
-            // Update the chat in past chats
             updateCurrentChat(finalMessages, messageText.slice(0, 50) + (messageText.length > 50 ? "..." : ""));
         });
 
-        // Add to past chats if it's a new conversation and not created yet
         if (!shouldCreateNewChat && currentChatId) {
-            // Update existing chat
             updateCurrentChat(updatedMessages, messageText.slice(0, 50) + (messageText.length > 50 ? "..." : ""));
         }
 
-        // Reset form
         if (isComposing) {
             setEditableResponse('');
             setIsComposing(false);
